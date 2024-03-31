@@ -7,17 +7,30 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
+import javax.swing.*;
 
-public class Server {
+public class DictionaryServer {
 	
 	// Declare the port number
-	private static int port = 3005;
+	private static int port;
+	private static String dictionaryFile;
 	
 	// Identifies the user number connected
 	private static int counter = 0;
 
 	public static void main(String[] args)
 	{
+		// read port number and dictionary file from the command line
+		try {
+			port = Integer.parseInt(args[0]);
+			dictionaryFile = args[1];
+
+		}
+		catch(Exception e) {
+			JOptionPane.showMessageDialog(null, "Please enter the 'Port number' and 'Dictionary file path'.", "Server Error", JOptionPane.ERROR_MESSAGE);
+		}
+		port = 30005;
+
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		
 		try(ServerSocket server = factory.createServerSocket(port))
