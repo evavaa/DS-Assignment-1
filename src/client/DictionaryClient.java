@@ -1,8 +1,11 @@
+package client;
+
 import javax.swing.*;
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import org.json.JSONObject;
 
 public class DictionaryClient {
 	
@@ -33,17 +36,8 @@ public class DictionaryClient {
 	 * @return meaning of the word
 	 */
 	public String search(String word) {
-		try(Socket socket = new Socket(serverAddress, port);) {
-			System.out.println("Connection established");
-
-			// Get the input/output streams for reading/writing data from/to the socket
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-
-			JSONObject data = new JSONObject();
-
-
-
+		try(Socket socket = new Socket(serverAddress, port);)
+		{
 			// Output and Input Stream
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 		    DataOutputStream output = new DataOutputStream(socket.getOutputStream());
