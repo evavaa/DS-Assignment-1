@@ -26,6 +26,9 @@ public class DictionaryClient {
 			clientGUI = new ClientGUI();
 			System.out.println("GUI");
 		}
+
+        //TODO: create the socket here --> thread-per-connection
+
 	}
 
 	/**

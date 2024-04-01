@@ -21,7 +21,6 @@ public class DictionaryServer {
 
 	static String command;
 	static String word;
-	static String meaning;
 
 	public static void main(String[] args)
 	{
