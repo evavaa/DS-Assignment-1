@@ -24,6 +24,7 @@ public class DictionaryClient {
 			port = 30005;
 			serverAddress = "localhost";
 			clientGUI = new ClientGUI();
+			System.out.println("GUI");
 		}
 	}
 

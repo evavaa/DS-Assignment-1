@@ -1,12 +1,13 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.*;
 
 public class DictionaryServer {
@@ -15,7 +16,6 @@ public class DictionaryServer {
 	private static int port;
 	private static String dictionaryFile;
 
-	
 	// Identifies the user number connected
 	private static int counter = 0;
 
@@ -70,8 +70,8 @@ public class DictionaryServer {
 		    DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
 
 			// receive message from the client
-		    System.out.println("CLIENT: " + input.readUTF());
 			String clientMessage = input.readUTF();
+			System.out.println("CLIENT: " + clientMessage);
 			JSONObject clientMessageJson = new JSONObject(clientMessage);
 			command = clientMessageJson.getString("command");
 			word = clientMessageJson.getString("word");
@@ -81,18 +81,19 @@ public class DictionaryServer {
 				serverResponse = searchWord(word, dictionaryFile);
 			}
 			else if (command.equals("add")) {
-				meaning = clientMessageJson.getString("meaning");
+				String meaning = clientMessageJson.getString("meaning");
 				serverResponse = addWord(word, meaning, dictionaryFile);
 			}
 			else if (command.equals("remove")) {
 				serverResponse = removeWord(word, dictionaryFile);
 			}
 			else if (command.equals("update")) {
-				JSONArray meanings = clientMessageJson.getJSONArray("meaning");
-				serverResponse = updateWord(word, meanings, dictionaryFile);
+				String meaning = clientMessageJson.getString("meaning");
+				serverResponse = updateWord(word, meaning, dictionaryFile);
 			}
 
 			// send response back to the client
+			System.out.println(serverResponse);
 			output.writeUTF(serverResponse + "\n");
 			output.flush();
 			System.out.println("Response sent");
@@ -111,93 +112,125 @@ public class DictionaryServer {
 	 * @return meaning of the word
 	 */
 	private static String searchWord(String word, String dictionaryFile) {
-		JSONObject dict = new JSONObject(dictionaryFile);
-		JSONObject response = new JSONObject();
-		// check if the dictionary includes the word
-		if (dict.has(word)) {
-			String meaning = dict.optString(word);
-			response.put("meaning", meaning);
-		} else {
-			response.put("meaning", "Word not found.");
+		System.out.println("start searching");
+		try {
+			// read the dictionary json file
+			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
+			JSONObject dict = new JSONObject(content);
+			JSONObject response = new JSONObject();
+
+			// check if the dictionary includes the word
+			if (dict.has(word)) {
+				String meaning = dict.optString(word);
+				response.put("meaning", meaning);
+			} else {
+				response.put("meaning", "Word not found.");
+			}
+			return response.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return response.toString();
+
+		return "Error";
 	}
 
 	private static String addWord(String word, String meaning, String dictionaryFile) {
-		JSONObject dict = new JSONObject(dictionaryFile);
-		JSONObject response = new JSONObject();
-		// check if the dictionary includes the word
-		if (dict.has(word)) {
-			response.put("status", "Duplicate");
-			return response.toString();
-		} else {
-			// add the word and the meaning to the dictionary
-			JSONObject newDict = dict.put(word, meaning);
-			try (FileWriter file = new FileWriter(dictionaryFile);) {
-				file.write(newDict.toString());
-				System.out.println("Successfully added new word to dictionary!!");
-				response.put("status", "Successful");
-				return response.toString();
+		try {
+			// read the dictionary json file
+			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
+			JSONObject dict = new JSONObject(content);
+			JSONObject response = new JSONObject();
 
-			} catch (IOException e) {
-				e.printStackTrace();
+			// check if the dictionary includes the word
+			if (dict.has(word)) {
+				response.put("status", "Duplicate");
+				return response.toString();
+			} else {
+				// add the word and the meaning to the dictionary
+				List<String> meaningList = Arrays.asList(meaning.split("\\s*,\\s*"));
+				JSONObject newDict = dict.put(word, meaningList);
+
+				try (FileWriter file = new FileWriter(dictionaryFile)) {
+					file.write(newDict.toString());
+					System.out.println("Successfully added new word to dictionary!!");
+					response.put("status", "Successful");
+					return response.toString();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return "Error";
 	}
 
 	private static String removeWord(String word, String dictionaryFile) {
-		JSONObject dict = new JSONObject(dictionaryFile);
-		JSONObject response = new JSONObject();
-		// check if the dictionary includes the word
-		if (dict.has(word)) {
-			response.put("status", "Word not found.");
-			return response.toString();
-		} else {
-			// remove word from dictionary
-			dict.remove(word);
-			try (FileWriter file = new FileWriter(dictionaryFile);) {
-				file.write(dict.toString());
-				System.out.println("Successfully removed the word from dictionary!!");
-				response.put("status", "Successful");
+		try {
+			// read the dictionary json file
+			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
+			JSONObject dict = new JSONObject(content);
+			JSONObject response = new JSONObject();
+			// check if the dictionary includes the word
+			if (! dict.has(word)) {
+				response.put("status", "Word not found.");
 				return response.toString();
+			} else {
+				// remove word from dictionary
+				dict.remove(word);
+				try (FileWriter file = new FileWriter(dictionaryFile)) {
+					file.write(dict.toString());
+					System.out.println("Successfully removed the word from dictionary!!");
+					response.put("status", "Successful");
+					return response.toString();
 
-			} catch (IOException e) {
-				e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return "Error";
 	}
 
-	private static String updateWord(String word, JSONArray newMeanings, String dictionaryFile) {
-		JSONObject dict = new JSONObject(dictionaryFile);
-		JSONObject response = new JSONObject();
-		// check if the dictionary includes the word
-		if (dict.has(word)) {
-			response.put("status", "Word not found.");
-			return response.toString();
-		} else {
-			// add meanings of the word that are not in dictionary
-			JSONArray dictMeanings = dict.optJSONArray(word);
-			// for each input meaning, if it not exists in dictionary, add to dictionary
-			for (int i = 0; i < newMeanings.length(); i++) {
-				String meaning = newMeanings.getString(i);
-				if (! dictMeanings.toString().contains("\"" + meaning + "\"")) {
-					dictMeanings.put(meaning);
+	private static String updateWord(String word, String newMeanings, String dictionaryFile) {
+		try {
+			// read the dictionary json file
+			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
+			JSONObject dict = new JSONObject(content);
+			JSONObject response = new JSONObject();
+
+			// check if the dictionary includes the word
+			if (! dict.has(word)) {
+				response.put("status", "Word not found.");
+				return response.toString();
+			} else {
+				// add meanings of the word that are not in dictionary
+				JSONArray dictMeanings = dict.optJSONArray(word);
+				List<String> meaningList = Arrays.asList(newMeanings.split("\\s*,\\s*"));
+				// for each input meaning, if it not exists in dictionary, add to dictionary
+				for (String meaning : meaningList) {
+					if (! dictMeanings.toString().contains("\"" + meaning + "\"")) {
+						dictMeanings.put(meaning);
+					}
+				}
+
+				// update the dictionary file
+				dict.put(word, dictMeanings);
+				try (FileWriter file = new FileWriter(dictionaryFile)) {
+					file.write(dict.toString());
+					System.out.println("Successfully updated the meaning of the word in dictionary!!");
+					response.put("status", "Successful");
+					return response.toString();
+
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
-
-			// update the dictionary file
-			dict.put(word, dictMeanings.toString());
-			try (FileWriter file = new FileWriter(dictionaryFile);) {
-				file.write(dict.toString());
-				System.out.println("Successfully updated the meaning of the word in dictionary!!");
-				response.put("status", "Successful");
-				return response.toString();
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return "Error";
 	}
