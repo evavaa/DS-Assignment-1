@@ -36,32 +36,27 @@ public class DictionaryClient {
 		try(Socket socket = new Socket(serverAddress, port);) {
 			System.out.println("Connection established");
 
-			// Get the input/output streams for reading/writing data from/to the socket
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-
-			JSONObject data = new JSONObject();
-
-
-
-			// Output and Input Stream
+			// get the input/output streams for reading/writing data from/to the socket
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 		    DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-		    String sendData ="I want to connect";
-		    
-	    	output.writeUTF(sendData);
-	    	System.out.println("Data sent to Server--> " + sendData);
+
+			// generate message to server
+			JSONObject message = new JSONObject();
+			message.put("command", "search");
+			message.put("word", word);
+
+		    // send message to server
+	    	output.writeUTF(message.toString());
+	    	System.out.println("Data sent to Server--> " + message.toString());
 	    	output.flush();
-	    	
-	    	boolean flag=true;
-		    while(flag)
-		    {
-		    	if(input.available()>0) {
-		    		String message = input.readUTF();
-		    		System.out.println(message);
-		    		flag= false;;
-		    	}
-		    }
+			System.out.println("Message sent");
+
+			// receive response from server
+			String response = input.readUTF();
+			System.out.println(response);
+			JSONObject responseJson = new JSONObject(response);
+			String meaning = responseJson.getString("meaning");
+			return meaning;
 		} 
 		catch (UnknownHostException e)
 		{
@@ -71,7 +66,7 @@ public class DictionaryClient {
 		{
 			e.printStackTrace();
 		}
-		return "done";
+		return "failed";
 	}
 
 	/**
@@ -81,25 +76,33 @@ public class DictionaryClient {
 	 * @return whether the word and its meaning are successfully added to the dictionary
 	 */
 	public boolean add(String word, String meaning) {
-		try(Socket socket = new Socket(serverAddress, port);)
-		{
-			// Output and Input Stream
+		try(Socket socket = new Socket(serverAddress, port);) {
+			System.out.println("Connection established");
+
+			// get the input/output streams for reading/writing data from/to the socket
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-			String sendData ="I want to connect";
 
-			output.writeUTF(sendData);
-			System.out.println("Data sent to Server--> " + sendData);
+			// generate message to server
+			JSONObject message = new JSONObject();
+			message.put("command", "add");
+			message.put("word", word);
+			message.put("meaning", meaning);
+
+			// send message to server
+			output.writeUTF(message.toString());
+			System.out.println("Data sent to Server--> " + message.toString());
 			output.flush();
+			System.out.println("Message sent");
 
-			boolean flag=true;
-			while(flag)
-			{
-				if(input.available()>0) {
-					String message = input.readUTF();
-					System.out.println(message);
-					flag= false;;
-				}
+			// receive response from server
+			String response = input.readUTF();
+			System.out.println(response);
+			JSONObject responseJson = new JSONObject(response);
+			if (responseJson.getString("status").equals("Successful")) {
+				return true;
+			} else {
+				return false;
 			}
 		}
 		catch (UnknownHostException e)
@@ -110,7 +113,7 @@ public class DictionaryClient {
 		{
 			e.printStackTrace();
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -119,25 +122,32 @@ public class DictionaryClient {
 	 * @return whether the word is successfully removed from the dictionary
 	 */
 	public boolean remove(String word) {
-		try(Socket socket = new Socket(serverAddress, port);)
-		{
-			// Output and Input Stream
+		try(Socket socket = new Socket(serverAddress, port);) {
+			System.out.println("Connection established");
+
+			// get the input/output streams for reading/writing data from/to the socket
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-			String sendData ="I want to connect";
 
-			output.writeUTF(sendData);
-			System.out.println("Data sent to Server--> " + sendData);
+			// generate message to server
+			JSONObject message = new JSONObject();
+			message.put("command", "remove");
+			message.put("word", word);
+
+			// send message to server
+			output.writeUTF(message.toString());
+			System.out.println("Data sent to Server--> " + message.toString());
 			output.flush();
+			System.out.println("Message sent");
 
-			boolean flag=true;
-			while(flag)
-			{
-				if(input.available()>0) {
-					String message = input.readUTF();
-					System.out.println(message);
-					flag= false;;
-				}
+			// receive response from server
+			String response = input.readUTF();
+			System.out.println(response);
+			JSONObject responseJson = new JSONObject(response);
+			if (responseJson.getString("status").equals("Successful")) {
+				return true;
+			} else {
+				return false;
 			}
 		}
 		catch (UnknownHostException e)
@@ -148,7 +158,7 @@ public class DictionaryClient {
 		{
 			e.printStackTrace();
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -158,25 +168,33 @@ public class DictionaryClient {
 	 * @return whether the update is successful
 	 */
 	public boolean update(String word, String meaning) {
-		try(Socket socket = new Socket(serverAddress, port);)
-		{
-			// Output and Input Stream
+		try(Socket socket = new Socket(serverAddress, port);) {
+			System.out.println("Connection established");
+
+			// get the input/output streams for reading/writing data from/to the socket
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-			String sendData ="I want to connect";
 
-			output.writeUTF(sendData);
-			System.out.println("Data sent to Server--> " + sendData);
+			// generate message to server
+			JSONObject message = new JSONObject();
+			message.put("command", "update");
+			message.put("word", word);
+			message.put("meaning", meaning);
+
+			// send message to server
+			output.writeUTF(message.toString());
+			System.out.println("Data sent to Server--> " + message.toString());
 			output.flush();
+			System.out.println("Message sent");
 
-			boolean flag=true;
-			while(flag)
-			{
-				if(input.available()>0) {
-					String message = input.readUTF();
-					System.out.println(message);
-					flag= false;;
-				}
+			// receive response from server
+			String response = input.readUTF();
+			System.out.println(response);
+			JSONObject responseJson = new JSONObject(response);
+			if (responseJson.getString("status").equals("Successful")) {
+				return true;
+			} else {
+				return false;
 			}
 		}
 		catch (UnknownHostException e)
@@ -187,7 +205,7 @@ public class DictionaryClient {
 		{
 			e.printStackTrace();
 		}
-		return true;
+		return false;
 	}
 
 }
