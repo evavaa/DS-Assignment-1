@@ -19,7 +19,7 @@ public class ClientGUI extends JFrame{
 
     public ClientGUI() {
         setContentPane(panelMain);
-        setTitle("Multi-threaded Dictionary Server");
+        setTitle("Multi-threaded Dictionary Client");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 500);
         setLocationRelativeTo(null);

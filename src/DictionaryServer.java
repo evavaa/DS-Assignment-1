@@ -28,11 +28,16 @@ public class DictionaryServer {
 		try {
 			port = Integer.parseInt(args[0]);
 			dictionaryFile = args[1];
+			// launch the application
+			ServerGUI serverGUI = new ServerGUI(dictionaryFile);
 		}
 		catch(Exception e) {
 			//TODO: for testing, delete later
 			port = 30005;
 			dictionaryFile = "dictionary.JSON";
+			// launch the application
+			ServerGUI serverGUI = new ServerGUI(dictionaryFile);
+
 			//JOptionPane.showMessageDialog(null, "Please enter the 'Port number' and 'Dictionary file path'.", "Server Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
@@ -46,7 +51,7 @@ public class DictionaryServer {
 			{
 				Socket client = server.accept();
 				counter++;
-				System.out.println("Client "+counter+": Applying for connection!");
+				System.out.println("Request "+counter+": Applying for connection!");
 							
 				// start a new thread for a connection
 				Thread t = new Thread(() -> serveClient(client));
@@ -133,7 +138,7 @@ public class DictionaryServer {
 		return "Error";
 	}
 
-	private static String addWord(String word, String meaning, String dictionaryFile) {
+	private synchronized static String addWord(String word, String meaning, String dictionaryFile) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
@@ -165,12 +170,13 @@ public class DictionaryServer {
 		return "Error";
 	}
 
-	private static String removeWord(String word, String dictionaryFile) {
+	private synchronized static String removeWord(String word, String dictionaryFile) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
 			JSONObject dict = new JSONObject(content);
 			JSONObject response = new JSONObject();
+
 			// check if the dictionary includes the word
 			if (! dict.has(word)) {
 				response.put("status", "Word not found.");
@@ -194,7 +200,7 @@ public class DictionaryServer {
 		return "Error";
 	}
 
-	private static String updateWord(String word, String newMeanings, String dictionaryFile) {
+	private synchronized static String updateWord(String word, String newMeanings, String dictionaryFile) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
