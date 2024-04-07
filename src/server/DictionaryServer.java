@@ -1,3 +1,5 @@
+package server;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,12 +31,6 @@ public class DictionaryServer {
 			ServerGUI serverGUI = new ServerGUI(dictionaryFile);
 		}
 		catch(Exception e) {
-			//TODO: for testing, delete later
-			port = 30005;
-			dictionaryFile = "dictionary.JSON";
-			// launch the application
-			ServerGUI serverGUI = new ServerGUI(dictionaryFile);
-
 			JOptionPane.showMessageDialog(null, "Please provide port number and path of the dictionary file!", "Server Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
@@ -128,7 +124,6 @@ public class DictionaryServer {
 			}
 			return response.toString();
 		} catch (IOException e) {
-			//TODO: add warning message
 			JOptionPane.showMessageDialog(null, "Cannot load the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}

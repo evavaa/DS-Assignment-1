@@ -1,3 +1,5 @@
+package server;
+
 import org.json.JSONObject;
 
 import javax.swing.*;

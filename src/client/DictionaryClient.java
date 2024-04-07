@@ -1,3 +1,5 @@
+package client;
+
 import java.io.*;
 import java.net.Socket;
 import org.json.JSONObject;
@@ -20,11 +22,6 @@ public class DictionaryClient {
 			ClientGUI clientGUI = new ClientGUI();
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Please provide server address and port number!", "Server Error", JOptionPane.ERROR_MESSAGE);
-			//TODO: for testing, delete later
-			port = 30005;
-			serverAddress = "localhost";
-			ClientGUI clientGUI = new ClientGUI();
-			System.out.println("GUI");
 		}
 	}
 
