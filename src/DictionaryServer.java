@@ -19,9 +19,6 @@ public class DictionaryServer {
 	// Identifies the user number connected
 	private static int counter = 0;
 
-	static String command;
-	static String word;
-
 	public static void main(String[] args)
 	{
 		// read port number and dictionary file from the command line
@@ -38,7 +35,7 @@ public class DictionaryServer {
 			// launch the application
 			ServerGUI serverGUI = new ServerGUI(dictionaryFile);
 
-			//JOptionPane.showMessageDialog(null, "Please enter the 'Port number' and 'Dictionary file path'.", "Server Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Please provide port number and path of the dictionary file!", "Server Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		try {
@@ -60,8 +57,8 @@ public class DictionaryServer {
 		} 
 		catch (IOException e)
 		{
-			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "Please enter a valid port number!", "Server Error", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
 	}
 	
@@ -77,23 +74,23 @@ public class DictionaryServer {
 			String clientMessage = input.readUTF();
 			System.out.println("CLIENT: " + clientMessage);
 			JSONObject clientMessageJson = new JSONObject(clientMessage);
-			command = clientMessageJson.getString("command");
-			word = clientMessageJson.getString("word");
+			String command = clientMessageJson.getString("command");
+			String word = clientMessageJson.getString("word");
 
 			String serverResponse = null;
 			if (command.equals("search")) {
-				serverResponse = searchWord(word, dictionaryFile);
+				serverResponse = searchWord(word);
 			}
 			else if (command.equals("add")) {
 				String meaning = clientMessageJson.getString("meaning");
-				serverResponse = addWord(word, meaning, dictionaryFile);
+				serverResponse = addWord(word, meaning);
 			}
 			else if (command.equals("remove")) {
-				serverResponse = removeWord(word, dictionaryFile);
+				serverResponse = removeWord(word);
 			}
 			else if (command.equals("update")) {
 				String meaning = clientMessageJson.getString("meaning");
-				serverResponse = updateWord(word, meaning, dictionaryFile);
+				serverResponse = updateWord(word, meaning);
 			}
 
 			// send response back to the client
@@ -105,6 +102,7 @@ public class DictionaryServer {
 		} 
 		catch (IOException e) 
 		{
+			JOptionPane.showMessageDialog(null, "Cannot connect to the client.", "Client Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 	}
@@ -112,11 +110,9 @@ public class DictionaryServer {
 	/**
 	 * Search the meaning of a word in the dictionary.
 	 * @param word word to be searched
-	 * @param dictionaryFile file path of the dictionary
 	 * @return meaning of the word
 	 */
-	private static String searchWord(String word, String dictionaryFile) {
-		System.out.println("start searching");
+	private synchronized static String searchWord(String word) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
@@ -132,13 +128,15 @@ public class DictionaryServer {
 			}
 			return response.toString();
 		} catch (IOException e) {
+			//TODO: add warning message
+			JOptionPane.showMessageDialog(null, "Cannot load the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 
 		return "Error";
 	}
 
-	private synchronized static String addWord(String word, String meaning, String dictionaryFile) {
+	private synchronized static String addWord(String word, String meaning) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
@@ -151,7 +149,7 @@ public class DictionaryServer {
 				return response.toString();
 			} else {
 				// add the word and the meaning to the dictionary
-				List<String> meaningList = Arrays.asList(meaning.split("\\s*,\\s*"));
+				List<String> meaningList = Arrays.asList(meaning.split("\\s*;\\s*"));
 				JSONObject newDict = dict.put(word, meaningList);
 
 				try (FileWriter file = new FileWriter(dictionaryFile)) {
@@ -161,16 +159,18 @@ public class DictionaryServer {
 					return response.toString();
 
 				} catch (IOException e) {
+					JOptionPane.showMessageDialog(null, "Cannot modify the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Cannot load the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 		return "Error";
 	}
 
-	private synchronized static String removeWord(String word, String dictionaryFile) {
+	private synchronized static String removeWord(String word) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
@@ -191,16 +191,18 @@ public class DictionaryServer {
 					return response.toString();
 
 				} catch (IOException e) {
+					JOptionPane.showMessageDialog(null, "Cannot modify the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Cannot load the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 		return "Error";
 	}
 
-	private synchronized static String updateWord(String word, String newMeanings, String dictionaryFile) {
+	private synchronized static String updateWord(String word, String newMeanings) {
 		try {
 			// read the dictionary json file
 			String content = new String(Files.readAllBytes(Paths.get(dictionaryFile)));
@@ -214,8 +216,8 @@ public class DictionaryServer {
 			} else {
 				// add meanings of the word that are not in dictionary
 				JSONArray dictMeanings = dict.optJSONArray(word);
-				List<String> meaningList = Arrays.asList(newMeanings.split("\\s*,\\s*"));
-				// for each input meaning, if it not exists in dictionary, add to dictionary
+				List<String> meaningList = Arrays.asList(newMeanings.split("\\s*;\\s*"));
+				// for each input meaning, if it does not exist in dictionary, add to dictionary
 				for (String meaning : meaningList) {
 					if (! dictMeanings.toString().contains("\"" + meaning + "\"")) {
 						dictMeanings.put(meaning);
@@ -231,10 +233,12 @@ public class DictionaryServer {
 					return response.toString();
 
 				} catch (IOException e) {
+					JOptionPane.showMessageDialog(null, "Cannot modify the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Cannot load the dictionary.", "Server Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 		return "Error";

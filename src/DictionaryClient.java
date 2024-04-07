@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.Socket;
 import org.json.JSONObject;
 
+import javax.swing.*;
+
 public class DictionaryClient {
 	
 	// server address and port
@@ -17,7 +19,7 @@ public class DictionaryClient {
 			// launch the application
 			ClientGUI clientGUI = new ClientGUI();
 		} catch (Exception e) {
-			//JOptionPane.showMessageDialog(null, "Please enter server address and port number!", "Server Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Please provide server address and port number!", "Server Error", JOptionPane.ERROR_MESSAGE);
 			//TODO: for testing, delete later
 			port = 30005;
 			serverAddress = "localhost";
@@ -58,7 +60,12 @@ public class DictionaryClient {
 
 		} catch (IOException e)
 		{
-			//TODO: graceful exit
+			// graceful exit
+			int reply = JOptionPane.showConfirmDialog(null, "The server is currently down. Do you want to exit the application?", "Server Error",  JOptionPane.YES_NO_OPTION);
+			if (reply == JOptionPane.YES_OPTION)
+			{
+				System.exit(0);
+			}
 			e.printStackTrace();
 		}
 		return "Error";
