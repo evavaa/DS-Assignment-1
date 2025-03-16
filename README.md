@@ -1,4 +1,4 @@
-## DS Assignment 1
+## COMP90015 Distributed System Assignment 1 -- Distributed Dictionary
 
 ### Architecture
 1. TCP for communication
